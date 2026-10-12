@@ -1,4 +1,4 @@
-**Polski** | [English](README.en.md)
+[English](README.en.md)
 
 # Allegro Clean View (mod)
 Rozszerzenie do przeglądarek opartych na silniku Chromium, które usuwa zbędne elementy ze stron serwisu Allegro.pl: reklamy, karuzele z rekomendacjami, banery promocyjne i inne rozpraszacze. Każdy element można włączyć lub wyłączyć indywidualnie w menu rozszerzenia, dzięki czemu to Ty decydujesz, co pozostanie widoczne.
