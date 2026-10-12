@@ -10,7 +10,6 @@ Rozszerzenie do przeglądarek opartych na silniku Chromium, które usuwa zbędne
 Ukrywane elementy obejmują kluczowe sekcje serwisu, w tym listy produktów (w kategoriach i wynikach wyszukiwania), strony ofert (również tych zakończonych), porównywarkę ofert, ulubione, koszyk, potwierdzenie zamówienia, historię zakupów oraz inne podstrony.
 
 W sumie ukrywanych może być ponad 50 różnych elementów.
-
 <br clear="left">
 
 ## O tym forku
