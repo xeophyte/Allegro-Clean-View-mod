@@ -1,4 +1,4 @@
-[Polish](README.md)
+[Polski](README.md)
 
 # Allegro Clean View (mod)
 A Chromium-based browser extension that removes clutter from Allegro.pl pages: ads, recommendation carousels, promotional banners and other distractions. Every element can be turned on or off individually in the extension popup, so you decide exactly what stays visible.
