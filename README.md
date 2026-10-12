@@ -1,9 +1,11 @@
+ **Polski** | [English](README.en.md)
+
 # Allegro Clean View (mod)
-A Chromium-based browser extension that removes clutter from Allegro.pl pages: ads, recommendation carousels, promotional banners and other distractions. Every element can be turned on or off individually in the extension popup, so you decide exactly what stays visible.
-Hidden elements cover the main parts of the site, including category and search listings, product pages (also for ended offers), offer comparison, favorites, cart, order confirmation, purchase history and other pages.
+Rozszerzenie do przeglądarek opartych na silniku Chromium, które usuwa zbędne elementy ze stron serwisu Allegro.pl: reklamy, karuzele z rekomendacjami, banery promocyjne i inne rozpraszacze. Każdy element można włączyć lub wyłączyć indywidualnie w menu rozszerzenia, dzięki czemu to Ty decydujesz, co pozostanie widoczne.
+Ukrywane elementy obejmują kluczowe sekcje serwisu, w tym listy produktów (w kategoriach i wynikach wyszukiwania), strony ofert (również tych zakończonych), porównywarkę ofert, ulubione, koszyk, potwierdzenie zamówienia, historię zakupów oraz inne podstrony.
 
-## About this fork
-This project is a modified and updated version of [Allegro Clean View](https://github.com/wprusik/allegro-clean-view) extension by [wprusik](https://github.com/wprusik), which is released under the MIT license. All credit for the original idea and code goes to the original author. This fork extends it with additional hideable elements and settings.
+## Informacje o tym forku
+Ten projekt to zmodyfikowana i zaktualizowana wersja rozszerzenia [Allegro Clean View](https://github.com/wprusik/allegro-clean-view) autorstwa [wprusik](https://github.com/wprusik), udostępnionego na licencji MIT. Wszelkie zasługi za oryginalny pomysł i kod należą się pierwotnemu autorowi. Niniejszy fork rozszerza to rozwiązanie o nowe elementy do ukrycia oraz funkcje.
 
-## License
-MIT. See the [LICENSE](LICENSE) file.
+## Licencja
+MIT. Zobacz plik [LICENSE](LICENSE).
