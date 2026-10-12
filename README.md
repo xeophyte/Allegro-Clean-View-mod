@@ -1,30 +1,9 @@
-# Allegro Clean View
+# Allegro Clean View (mod)
+A Chromium-based browser extension that removes clutter from Allegro.pl pages: ads, recommendation carousels, promotional banners and other distractions. Every element can be turned on or off individually in the extension popup, so you decide exactly what stays visible.
+Hidden elements cover the main parts of the site, including category and search listings, product pages (also for ended offers), offer comparison, favorites, cart, order confirmation, purchase history and other pages.
 
-A plugin for Firefox and Chrome browsers that improves the Allegro.pl website's user experience:
-- Restores product descriptions and parameters
-- Removes all ads/recommendations from the product page
-- Removes recommendations from the Cart page
-- Removes recommendations from the Favorites page
-- Moves the new 'Combine Shipments' button to the top next to the 'Create List' button and removes the entire section presenting it so it doesn't take up additional space on the item list
+## About this fork
+This project is a modified fork of [Allegro Clean View](https://github.com/wprusik/allegro-clean-view) by [wprusik](https://github.com/wprusik), which is released under the MIT license. All credit for the original idea and code goes to the original author. This fork extends it with additional hideable elements and settings.
 
-### Project structure
-This repository contains three extension variants:
-
-- `firefox/` - Firefox version
-- `chrome/` - Chrome version
-- `userscript/` - UserScript version (without control panel)
-
-### Get the extension
-
-- Firefox (AMO): https://addons.mozilla.org/en-US/firefox/addon/allegro-clean-view
-- Chrome (Chrome Web Store): https://chromewebstore.google.com/detail/allegro-clean-view/bdbgeihjandpdlaekgjfhbomjfphdian
-
-### UserScript version
-
-You can also use a standalone UserScript version: `userscript/allegro-clean-view.user.js`
-
-Configuration:
-- Edit the `CONFIG` object at the top of the script:
-  - `pageSettings.product` - enable/disable product page features
-  - `pageSettings.cart` - enable/disable cart cleanup
-  - `pageSettings.favorites` - enable/disable favorites cleanup
+## License
+MIT. The original copyright notice is preserved in the LICENSE file, with additional copyright for the modifications.
