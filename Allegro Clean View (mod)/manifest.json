@@ -1,69 +1,129 @@
 {
-   "action": {
-      "default_icon": {
-         "128": "icons/icon-128.png",
-         "16": "icons/icon-16.png",
-         "32": "icons/icon-32.png",
-         "48": "icons/icon-48.png"
-      },
-      "default_popup": "popup.html",
-      "default_title": "Allegro Clean View (mod)"
-   },
-   "background": {
-      "service_worker": "background.js"
-   },
-   "content_scripts": [ {
-      "css": [ "product-offers-instant-hide.css" ],
-      "js": [ "product-offers-content.js" ],
-      "matches": [ "https://allegro.pl/oferty-produktu/*" ],
-      "run_at": "document_start"
-   }, {
-      "css": [ "listing-instant-hide.css" ],
-      "js": [ "listing-content.js" ],
-      "matches": [ "https://allegro.pl/kategoria/*", "https://allegro.pl/listing*" ],
-      "run_at": "document_start"
-   }, {
-      "css": [ "misc-instant-hide.css" ],
-      "js": [ "misc-content.js" ],
-      "matches": [ "https://allegro.pl/*" ],
-      "run_at": "document_start"
-   }, {
-      "css": [ "product-page-instant-hide.css" ],
-      "js": [ "content.js" ],
-      "matches": [ "https://allegro.pl/produkt/*", "https://allegro.pl/oferta/*" ],
-      "run_at": "document_start"
-   }, {
-      "css": [ "cart-instant-hide.css" ],
-      "js": [ "cart-content.js" ],
-      "matches": [ "https://allegro.pl/koszyk" ],
-      "run_at": "document_start"
-   }, {
-      "css": [ "transaction-instant-hide.css" ],
-      "js": [ "transaction-content.js" ],
-      "matches": [ "https://allegro.pl/transakcja/dziekujemy*" ],
-      "run_at": "document_start"
-   }, {
-      "css": [ "favorites-instant-hide.css" ],
-      "js": [ "favorites-content.js" ],
-      "matches": [ "https://allegro.pl/moje-allegro/zakupy/obserwowane/ulubione" ],
-      "run_at": "document_start"
-   }, {
-      "css": [ "my-purchases-instant-hide.css" ],
-      "js": [ "my-purchases-content.js" ],
-      "matches": [ "https://allegro.pl/moje-allegro/zakupy/*" ],
-      "run_at": "document_start"
-   } ],
-   "description": "Ukrywa zbędne elementy na stronach Allegro",
-   "icons": {
+  "manifest_version": 3,
+  "name": "Allegro Clean View (mod)",
+  "version": "2.0",
+  "description": "Ukrywa zbędne elementy na stronach Allegro",
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "icons": {
+    "128": "icons/icon-128.png",
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png"
+  },
+  "action": {
+    "default_icon": {
       "128": "icons/icon-128.png",
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
       "48": "icons/icon-48.png"
-   },
-   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2T4qe++UKlGZ7bqpj3HM8dJoaqzg35hXCdPuW53miuAyDM9ZRzCMJuU+Q3NViS9zZnWGcrVglLi38mZeifNHm1As6KnXGYpr+V0RgdPn6YuYzuEyAeTntFv4y6606BAryFVe/GJYJ34LOb3YQp9S1NzQ+qvlf1cPCyj4NIP3Mrrhf5f0nifwTAWUW+28EfvADHuEXYjkxAaAjDreT/SiwQHlzLRQy9m2bRQb/e7C7CYtULdaMdZSaaBc5AABGvJatFvHdujkmeNEdYyyIQewzBLt/csYNC+fgh67hauO4VCoTjOWi3z1ijsdLBtIDIi5DRuglPmTYzOLfhfOgmDa8wIDAQAB",
-   "manifest_version": 3,
-   "name": "Allegro Clean View (mod)",
-   "permissions": [ "storage", "tabs" ],
-   "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "2.0"
+    },
+    "default_popup": "popup.html",
+    "default_title": "Allegro Clean View (mod)"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "css": [
+        "product-offers-instant-hide.css"
+      ],
+      "js": [
+        "product-offers-content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/oferty-produktu/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "listing-instant-hide.css"
+      ],
+      "js": [
+        "listing-content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/kategoria/*",
+        "https://allegro.pl/listing*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "misc-instant-hide.css"
+      ],
+      "js": [
+        "misc-content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "product-page-instant-hide.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/produkt/*",
+        "https://allegro.pl/oferta/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "cart-instant-hide.css"
+      ],
+      "js": [
+        "cart-content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/koszyk"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "transaction-instant-hide.css"
+      ],
+      "js": [
+        "transaction-content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/transakcja/dziekujemy*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "favorites-instant-hide.css"
+      ],
+      "js": [
+        "favorites-content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/moje-allegro/zakupy/obserwowane/ulubione"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "my-purchases-instant-hide.css"
+      ],
+      "js": [
+        "my-purchases-content.js"
+      ],
+      "matches": [
+        "https://allegro.pl/moje-allegro/zakupy/*"
+      ],
+      "run_at": "document_start"
+    }
+  ]
 }
