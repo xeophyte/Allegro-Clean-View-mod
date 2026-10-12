@@ -6,4 +6,4 @@ Hidden elements cover the main parts of the site, including category and search 
 This project is a modified fork of [Allegro Clean View](https://github.com/wprusik/allegro-clean-view) by [wprusik](https://github.com/wprusik), which is released under the MIT license. All credit for the original idea and code goes to the original author. This fork extends it with additional hideable elements and settings.
 
 ## License
-MIT. The original copyright notice is preserved in the LICENSE file, with additional copyright for the modifications.
+MIT. See the [LICENSE](LICENSE) file.
