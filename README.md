@@ -1,6 +1,5 @@
 [English](README.en.md)
 
-
 # Allegro Clean View (mod) <img width="32" height="32" alt="icon-32" src="https://github.com/user-attachments/assets/69bb3620-1cbb-4810-98cd-d3cb085fd408" />
 
 <img width="252" height="304" align="left" alt="zrzut menu" src="https://github.com/user-attachments/assets/46f5f20c-9c95-4c33-b67c-68bccfe9993d" />
@@ -9,10 +8,12 @@ Rozszerzenie do przeglądarek opartych na silniku Chromium, które usuwa zbędne
 
 Ukrywane elementy obejmują kluczowe sekcje serwisu, w tym listy produktów (w kategoriach i wynikach wyszukiwania), strony ofert (również tych zakończonych), porównywarkę ofert, ulubione, koszyk, potwierdzenie zamówienia, historię zakupów oraz inne podstrony.
 
-W sumie ukrywanych może być ponad 50 różnych elementów.
+Dodaje również kilka przydatnych funkcji jak zmiana domyślnego sortowania, rozwijanie opisu czy wyłączenie zmiany obrazów po najechaniu na miniatury.
+
+W sumie jest to 60 elementów do ukrycia plus kilka funkcji.
 <br clear="left">
 
-## O tym forku
+#### O tym forku
 Jest to zmodyfikowana i zaktualizowana wersja rozszerzenia [Allegro Clean View](https://github.com/wprusik/allegro-clean-view) autorstwa [wprusik](https://github.com/wprusik), udostępnionego na licencji MIT. Wszelkie zasługi za oryginalny pomysł i kod należą się pierwotnemu autorowi. Niniejszy fork rozszerza to rozwiązanie o nowe elementy do ukrycia oraz funkcje.
 
 #### Licencja
