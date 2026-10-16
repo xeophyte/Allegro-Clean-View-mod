@@ -4,7 +4,7 @@
 
 <img width="252" height="304" align="left" alt="zrzut menu" src="https://github.com/user-attachments/assets/46f5f20c-9c95-4c33-b67c-68bccfe9993d" />
 
-Rozszerzenie do przeglądarek opartych na silniku Chromium, które usuwa zbędne elementy ze stron serwisu Allegro.pl: reklamy, karuzele z rekomendacjami, banery promocyjne i inne rozpraszacze. Każdy element można włączyć lub wyłączyć indywidualnie w menu rozszerzenia, dzięki czemu to Ty decydujesz, co pozostanie widoczne.
+Rozszerzenie do przeglądarek opartych na silniku Chromium, które usuwa zbędne elementy ze stron serwisu Allegro.pl: reklamy, karuzele z rekomendacjami, banery promocyjne i inne rozpraszacze. Każdy element można włączyć lub wyłączyć indywidualnie w menu rozszerzenia.
 
 Ukrywane elementy obejmują kluczowe sekcje serwisu, w tym listy produktów (w kategoriach i wynikach wyszukiwania), strony ofert (również tych zakończonych), porównywarkę ofert, ulubione, koszyk, potwierdzenie zamówienia, historię zakupów oraz inne podstrony.
 
