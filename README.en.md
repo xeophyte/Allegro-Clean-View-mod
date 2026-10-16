@@ -4,7 +4,7 @@
 
 <img width="252" height="304" align="left" alt="zrzut menu" src="https://github.com/user-attachments/assets/46f5f20c-9c95-4c33-b67c-68bccfe9993d" />
 
-A Chromium-based browser extension that removes clutter from Allegro.pl pages: ads, recommendation carousels, promotional banners and other distractions. Every element can be turned on or off individually in the extension popup, so you decide exactly what stays visible.
+A Chromium-based browser extension that removes clutter from Allegro.pl pages: ads, recommendation carousels, promotional banners and other distractions. Every element can be turned on or off individually in the extension popup.
 
 Hidden elements cover the main parts of the site, including category and search listings, product pages (also for ended offers), offer comparison, favorites, cart, order confirmation, purchase history and other pages.
 
