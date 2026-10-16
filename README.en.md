@@ -8,10 +8,12 @@ A Chromium-based browser extension that removes clutter from Allegro.pl pages: a
 
 Hidden elements cover the main parts of the site, including category and search listings, product pages (also for ended offers), offer comparison, favorites, cart, order confirmation, purchase history and other pages.
 
-In total, over 50 different items can be hidden.
+It also adds several useful features, such as changing the default sorting, expanding descriptions, and disabling the image-swapping effect that occurs when hovering over thumbnails.
+
+In total, there are 60 elements that can be hidden, along with a few additional features.
 <br clear="left">
 
-## About this fork
+#### About this fork
 This is a modified and updated version of [Allegro Clean View](https://github.com/wprusik/allegro-clean-view) extension by [wprusik](https://github.com/wprusik), which is released under the MIT license. All credit for the original idea and code goes to the original author. This fork extends it with new hideable elements and functions.
 
 #### License
