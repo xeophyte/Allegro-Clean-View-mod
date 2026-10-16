@@ -1,4 +1,5 @@
 const DEFAULT_PRODUCT_SECTIONS = {
+    disableGalleryHover: false,
     othersAlsoViewed: true,
     lowestPriceProposals: true,
     singleShipmentOrder: true,
@@ -20,11 +21,13 @@ const DEFAULT_PRODUCT_SECTIONS = {
     lokalnieOffers: true,
     collapsedReviews: true,
     similarOffers: true,
-    endedOfferReco: true
+    endedOfferReco: true,
+    recommendedProducts: true
 };
 
 const PRODUCT_SECTION_CHECKBOXES = {
     othersAlsoViewed: "setting-product-others-also-viewed",
+    disableGalleryHover: "setting-product-disable-gallery-hover",
     lowestPriceProposals: "setting-product-lowest-price-proposals",
     singleShipmentOrder: "setting-product-single-shipment-order",
     singleShipmentSetOrder: "setting-product-single-shipment-set-order",
@@ -45,7 +48,8 @@ const PRODUCT_SECTION_CHECKBOXES = {
     lokalnieOffers: "setting-product-lokalnie-offers",
     collapsedReviews: "setting-product-collapsed-reviews",
     similarOffers: "setting-product-similar-offers",
-    endedOfferReco: "setting-product-ended-offer-reco"
+    endedOfferReco: "setting-product-ended-offer-reco",
+    recommendedProducts: "setting-product-recommended-products"
 };
 
 const DEFAULT_TRANSACTION_SECTIONS = {
@@ -108,11 +112,13 @@ const LISTING_SECTION_CHECKBOXES = {
 
 const DEFAULT_PRODUCT_OFFERS_SECTIONS = {
     sponsoredBrand: true,
+    officialStore: true,
     similarOffers: true
 };
 
 const PRODUCT_OFFERS_SECTION_CHECKBOXES = {
     sponsoredBrand: "setting-product-offers-sponsored-brand",
+    officialStore: "setting-product-offers-official-store",
     similarOffers: "setting-product-offers-similar-offers"
 };
 
@@ -129,6 +135,9 @@ const FAVORITES_SECTION_CHECKBOXES = {
 };
 
 const DEFAULT_MISC_SECTIONS = {
+    searchSuggestions: true,
+    sponsoredOffers: true,
+    loginAd: true,
     allegroServices: true,
     reviewsFilter: true,
     comparisonRecommended: true,
@@ -140,6 +149,9 @@ const DEFAULT_MISC_SECTIONS = {
 };
 
 const MISC_SECTION_CHECKBOXES = {
+    searchSuggestions: "setting-misc-search-suggestions",
+    sponsoredOffers: "setting-misc-sponsored-offers",
+    loginAd: "setting-misc-login-ad",
     allegroServices: "setting-misc-allegro-services",
     reviewsFilter: "setting-misc-reviews-filter",
     comparisonRecommended: "setting-misc-comparison-recommended",
@@ -178,14 +190,18 @@ function sendMessage(message) {
 }
 
 function setDisabled(disabled) {
-    document.querySelectorAll('input[type="checkbox"], button').forEach((el) => {
+    document.querySelectorAll('input[type="checkbox"], button, select').forEach((el) => {
         el.disabled = disabled;
     });
 }
 
+// Sekcje domyślnie WYŁĄCZONE (zmieniają zachowanie strony, a nie tylko ukrywają
+// element) - brak zapisanej wartości oznacza false, a nie true.
+const PRODUCT_SECTIONS_OFF_BY_DEFAULT = ["disableGalleryHover"];
+
 function normalizeProductSections(raw) {
     return Object.keys(DEFAULT_PRODUCT_SECTIONS).reduce((acc, key) => {
-        acc[key] = raw?.[key] !== false;
+        acc[key] = PRODUCT_SECTIONS_OFF_BY_DEFAULT.includes(key) ? raw?.[key] === true : raw?.[key] !== false;
         return acc;
     }, {});
 }
@@ -240,7 +256,11 @@ function normalizeMyPurchasesSections(raw) {
 }
 
 function syncProductMasterCheckbox(product, sectionCheckboxes) {
-    const values = Object.values(sectionCheckboxes).map((checkbox) => checkbox.checked);
+    // Sekcje zmieniające zachowanie (domyślnie wyłączone) nie wchodzą w stan
+    // głównego checkboxa - nie włączają się razem z całą sekcją.
+    const values = Object.entries(sectionCheckboxes)
+        .filter(([key]) => !PRODUCT_SECTIONS_OFF_BY_DEFAULT.includes(key))
+        .map(([, checkbox]) => checkbox.checked);
     const enabledCount = values.filter(Boolean).length;
 
     product.checked = enabledCount === values.length;
@@ -260,7 +280,7 @@ function getActivePageKey(pathname) {
     if (pathname.startsWith("/oferty-produktu/")) {
         return "productOffers";
     }
-    if (pathname.startsWith("/produkt/") || pathname.startsWith("/oferta/")) {
+    if (pathname.startsWith("/produkt/") || pathname.startsWith("/oferta/") || pathname.startsWith("/ogloszenie/")) {
         return "product";
     }
     if (pathname.startsWith("/transakcja/dziekujemy")) {
@@ -358,6 +378,15 @@ async function updateFavoritesSectionSetting(section, enabled) {
     setDisabled(true);
     try {
         await sendMessage({ type: "SET_FAVORITES_SECTION_ENABLED", section, enabled });
+    } finally {
+        setDisabled(false);
+    }
+}
+
+async function updateMiscSortSetting(enabled, value) {
+    setDisabled(true);
+    try {
+        await sendMessage({ type: "SET_MISC_SORT", enabled, value });
     } finally {
         setDisabled(false);
     }
@@ -462,9 +491,16 @@ async function initPopup() {
     // configu) - dane raportowane przez content.js/my-purchases-content.js
     // do background.js (REPORT_APPLIED_SECTIONS), patrz komentarz przy
     // appliedSectionsByTab w background.js.
-    if (activeTabId != null) {
+    // Pobiera z background.js aktualną listę zastosowanych sekcji i ustawia
+    // pogrubienia (klasa is-applied). Czyści stare, więc działa też "na żywo":
+    // wywoływane przy otwarciu popupu oraz za każdym razem, gdy background
+    // zgłosi zmianę (APPLIED_SECTIONS_CHANGED) - np. po doładowaniu elementu
+    // na stronie albo po przeładowaniu karty przy otwartym popupie.
+    async function refreshAppliedSections() {
+        if (activeTabId == null) return;
         try {
             const { sections: appliedSections } = await sendMessage({ type: "GET_APPLIED_SECTIONS", tabId: activeTabId }) || {};
+            document.querySelectorAll(".setting-row.is-applied").forEach((el) => el.classList.remove("is-applied"));
             const miscSectionKeys = new Set(Object.keys(DEFAULT_MISC_SECTIONS));
             (appliedSections || []).forEach((key) => {
                 // Klucze mogą się powtarzać między stronami (np. infiniteFeed),
@@ -484,6 +520,12 @@ async function initPopup() {
         } catch (_) {
         }
     }
+    await refreshAppliedSections();
+    (typeof browser !== "undefined" && browser?.runtime ? browser.runtime : chrome.runtime).onMessage.addListener((message) => {
+        if (message?.type === "APPLIED_SECTIONS_CHANGED" && message.tabId === activeTabId) {
+            refreshAppliedSections();
+        }
+    });
 
     let settings = {
         listing: true,
@@ -557,6 +599,30 @@ async function initPopup() {
     Object.keys(miscSectionCheckboxes).forEach((key) => {
         miscSectionCheckboxes[key].checked = miscSections[key];
     });
+    // Domyślne sortowanie (osobny klucz miscSort, poza listą sekcji ukrywania).
+    const miscSortCheckbox = document.getElementById("setting-misc-sort");
+    const miscSortSelect = document.getElementById("setting-misc-sort-select");
+    const miscSortButton = document.getElementById("setting-misc-sort-button");
+    const miscSortList = miscSortSelect.querySelector(".acv-select-list");
+    // Własna lista wyboru (zamiast <select>), żeby zamknięta nie poszerzała popupu.
+    const setMiscSortValue = (value) => {
+        const options = [...miscSortList.querySelectorAll("li")];
+        const chosen = options.find((li) => li.dataset.value === value);
+        if (!chosen) return false;
+        options.forEach((li) => {
+            li.classList.toggle("is-selected", li === chosen);
+            li.setAttribute("aria-selected", String(li === chosen));
+        });
+        miscSortSelect.dataset.value = value;
+        miscSortSelect.querySelector(".acv-select-label").textContent = chosen.textContent;
+        return true;
+    };
+    const closeMiscSortList = () => {
+        miscSortList.hidden = true;
+        miscSortButton.setAttribute("aria-expanded", "false");
+    };
+    miscSortCheckbox.checked = settings.miscSort?.enabled === true;
+    setMiscSortValue(settings.miscSort?.value) || setMiscSortValue("p");
     syncProductMasterCheckbox(misc, miscSectionCheckboxes);
 
     Object.keys(myPurchasesSectionCheckboxes).forEach((key) => {
@@ -694,8 +760,8 @@ async function initPopup() {
 
     product.addEventListener("change", async () => {
         await updateSetting("product", product.checked);
-        Object.values(productSectionCheckboxes).forEach((checkbox) => {
-            checkbox.checked = product.checked;
+        Object.entries(productSectionCheckboxes).forEach(([key, checkbox]) => {
+            checkbox.checked = PRODUCT_SECTIONS_OFF_BY_DEFAULT.includes(key) ? false : product.checked;
         });
         product.indeterminate = false;
     });
@@ -792,6 +858,26 @@ async function initPopup() {
             await updateMiscSectionSetting(key, checkbox.checked);
             syncProductMasterCheckbox(misc, miscSectionCheckboxes);
         });
+    });
+
+    const saveMiscSort = () => updateMiscSortSetting(miscSortCheckbox.checked, miscSortSelect.dataset.value);
+    miscSortCheckbox.addEventListener("change", saveMiscSort);
+    miscSortButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const willOpen = miscSortList.hidden;
+        miscSortList.hidden = !willOpen;
+        miscSortButton.setAttribute("aria-expanded", String(willOpen));
+    });
+    miscSortList.addEventListener("click", async (event) => {
+        const li = event.target.closest("li");
+        if (!li) return;
+        setMiscSortValue(li.dataset.value);
+        closeMiscSortList();
+        await saveMiscSort();
+    });
+    document.addEventListener("click", closeMiscSortList);
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeMiscSortList();
     });
 
     Object.keys(myPurchasesSectionCheckboxes).forEach((key) => {

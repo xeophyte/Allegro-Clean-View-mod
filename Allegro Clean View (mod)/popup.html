@@ -87,6 +87,73 @@
             font-weight: 700;
         }
 
+        /* Własna lista wyboru domyślnego sortowania (Różne). Zamknięta ma stałą
+           szerokość (reszta wiersza, tekst ucinany wielokropkiem), więc nie
+           poszerza popupu; otwarta rozwija się na szerokość najdłuższej pozycji,
+           wyrównana do prawej krawędzi wiersza (rośnie w lewo). Tło jak menu. */
+        .subsettings .setting-row { min-width: 0; }
+
+        .acv-select {
+            position: relative;
+            flex: 1 1 0;
+            width: 0;
+            min-width: 0;
+        }
+
+        .acv-select-button {
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 4px;
+            font: inherit;
+            font-size: 11px;
+            color: #2f200f;
+            background: #fff6ed;
+            border: 1px solid #ff8c00;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .acv-select-label {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .acv-select-list {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            z-index: 10;
+            margin: 2px 0 0;
+            padding: 2px 0;
+            list-style: none;
+            min-width: 100%;
+            width: max-content;
+            box-sizing: border-box;
+            background: #fff6ed;
+            border: 1px solid #ff8c00;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .acv-select-list[hidden] { display: none; }
+
+        .acv-select-list li {
+            padding: 3px 8px;
+            font-size: 11px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .acv-select-list li:hover { background: #ffe3c4; }
+        .acv-select-list li.is-selected { font-weight: 700; }
+
         input[type="checkbox"] {
             width: 14px;
             height: 14px;
@@ -161,6 +228,7 @@
         </div>
         <div id="productOffers-subsettings" class="subsettings is-collapsed">
             <div class="setting-row" data-section="sponsoredBrand"><input id="setting-product-offers-sponsored-brand" type="checkbox"><span class="setting-text">Marka sponsorowana</span></div>
+            <div class="setting-row" data-section="officialStore"><input id="setting-product-offers-official-store" type="checkbox"><span class="setting-text">Odkryj oficjalny sklep</span></div>
             <div class="setting-row" data-section="similarOffers"><input id="setting-product-offers-similar-offers" type="checkbox"><span class="setting-text">Podobne oferty</span></div>
         </div>
         <div class="setting-row" data-page="product">
@@ -168,6 +236,7 @@
             <span id="toggle-product-sections" class="setting-text is-expandable" role="button" tabindex="0" aria-label="Rozwiń ustawienia strony produktu" aria-expanded="false">Strona produktu<span class="expand-arrow" aria-hidden="true">▾</span></span>
         </div>
         <div id="product-subsettings" class="subsettings is-collapsed">
+            <div class="setting-row" data-section="disableGalleryHover"><input id="setting-product-disable-gallery-hover" type="checkbox"><span class="setting-text">Kursor nie zmienia obrazów</span></div>
             <div class="setting-row" data-section="descriptionExpanded"><input id="setting-product-description-expanded" type="checkbox"><span class="setting-text">Domyślne rozwijanie opisu</span></div>
             <div class="setting-row" data-section="collapsedReviews"><input id="setting-product-collapsed-reviews" type="checkbox"><span class="setting-text">Zwinięte Opinie o produkcie</span></div>
             <div class="setting-row" data-section="ads"><input id="setting-product-ads" type="checkbox"><span class="setting-text">Reklamy (DSS i banerowe)</span></div>
@@ -184,6 +253,7 @@
             <div class="setting-row" data-section="ourProductSeries"><input id="setting-product-our-product-series" type="checkbox"><span class="setting-text">Nasze serie produktów</span></div>
             <div class="setting-row" data-section="singleShipmentOrder"><input id="setting-product-single-shipment-order" type="checkbox"><span class="setting-text">Zamów w jednej przesyłce</span></div>
             <div class="setting-row" data-section="lastViewed"><input id="setting-product-last-viewed" type="checkbox"><span class="setting-text">Ostatnio przeglądane</span></div>
+            <div class="setting-row" data-section="recommendedProducts"><input id="setting-product-recommended-products" type="checkbox"><span class="setting-text">Polecane produkty</span></div>
             <div class="setting-row" data-section="lowestPriceProposals"><input id="setting-product-lowest-price-proposals" type="checkbox"><span class="setting-text">Propozycje z gwarancją najniższej ceny</span></div>
             <div class="setting-row" data-section="inspiredBySearches"><input id="setting-product-inspired-by-searches" type="checkbox"><span class="setting-text">Oferty zainspirowane Twoimi wyszukiwaniami</span></div>
             <div class="setting-row" data-section="infiniteFeed"><input id="setting-product-infinite-feed" type="checkbox"><span class="setting-text">Co powiesz na...?</span></div>
@@ -236,6 +306,9 @@
         </div>
         <div id="misc-subsettings" class="subsettings is-collapsed">
             <div class="setting-row" data-section="mainTopAd"><input id="setting-misc-main-top-ad" type="checkbox"><span class="setting-text">Reklama u góry głównej</span></div>
+            <div class="setting-row" data-section="searchSuggestions"><input id="setting-misc-search-suggestions" type="checkbox"><span class="setting-text">Propozycje w wyszukiwarce</span></div>
+            <div class="setting-row" data-section="defaultSort"><input id="setting-misc-sort" type="checkbox"><span class="setting-text">Sortowanie:</span><div class="acv-select" id="setting-misc-sort-select" data-value="p"><button type="button" class="acv-select-button" id="setting-misc-sort-button" aria-haspopup="listbox" aria-expanded="false"><span class="acv-select-label">cena: od najniższej</span><span aria-hidden="true">▾</span></button><ul class="acv-select-list" role="listbox" hidden><li role="option" data-value="p">cena: od najniższej</li><li role="option" data-value="pd">cena: od najwyższej</li><li role="option" data-value="d">cena z dostawą: od najniższej</li><li role="option" data-value="dd">cena z dostawą: od najwyższej</li><li role="option" data-value="qd">popularność: największa</li><li role="option" data-value="t">czas do końca: najmniej</li><li role="option" data-value="n">czas dodania: najnowsze</li></ul></div></div>
+            <div class="setting-row" data-section="sponsoredOffers"><input id="setting-misc-sponsored-offers" type="checkbox"><span class="setting-text">Oferty sponsorowane</span></div>
             <div class="setting-row" data-section="allegroServices"><input id="setting-misc-allegro-services" type="checkbox"><span class="setting-text">Usługi Allegro w ofertach</span></div>
             <div class="setting-row" data-section="reviewsFilter"><input id="setting-misc-reviews-filter" type="checkbox"><span class="setting-text">Wybierz co dla Ciebie ważne</span></div>
             <div class="setting-row" data-section="comparisonRecommended"><input id="setting-misc-comparison-recommended" type="checkbox"><span class="setting-text">Polecane w porównaniu</span></div>
@@ -243,6 +316,7 @@
             <div class="setting-row" data-section="footerLinks"><input id="setting-misc-footer-links" type="checkbox"><span class="setting-text">Linki nad stopką</span></div>
             <div class="setting-row" data-section="footerColumns"><input id="setting-misc-footer-columns" type="checkbox"><span class="setting-text">Stopka (ustawienia)</span></div>
             <div class="setting-row" data-section="footerAd"><input id="setting-misc-footer-ad" type="checkbox"><span class="setting-text">Reklama pod stopką</span></div>
+            <div class="setting-row" data-section="loginAd"><input id="setting-misc-login-ad" type="checkbox"><span class="setting-text">Reklama przy logowaniu</span></div>
         </div>
     </div>
 </div>

@@ -15,7 +15,12 @@ const ACV_INSTANT_HIDE_CSS_CLASSES = {
     infiniteFeed: "acv-hide-infinite-feed",
     ads: "acv-hide-ads",
     lokalnieOffers: "acv-hide-lokalnie-offers",
-    endedOfferReco: "acv-hide-ended-offer-reco"
+    endedOfferReco: "acv-hide-ended-offer-reco",
+    recommendedProducts: "acv-hide-recommended-products",
+    // Nie ukrywanie, tylko wyłączenie powiększania obrazu głównego po najechaniu
+    // (patrz reguła w product-page-instant-hide.css); sterowane tym samym checkboxem
+    // co blokada zmiany obrazu miniaturami (disableGalleryHover, domyślnie wyłączone).
+    disableGalleryHover: "acv-disable-gallery-zoom"
 };
 
 function _acvApplyInstantHideClasses(sections) {
@@ -34,7 +39,7 @@ function _acvApplyInstantHideClasses(sections) {
 // i tak używa się wartości domyślnych - true). Jeśli faktyczny zapisany
 // config różni się od domyślnych wartości, klasy są korygowane w IIFE na
 // końcu pliku zaraz po odczycie configu.
-_acvApplyInstantHideClasses({ othersAlsoViewed: true, ourProductSeries: true, allegroPayCoupons: true, askOnPage: true, brandInfo: true, upsellAiSuggestion: true, productSurvey: true, infiniteFeed: true, ads: true, lokalnieOffers: true, endedOfferReco: true });
+_acvApplyInstantHideClasses({ disableGalleryHover: false, othersAlsoViewed: true, ourProductSeries: true, allegroPayCoupons: true, askOnPage: true, brandInfo: true, upsellAiSuggestion: true, productSurvey: true, infiniteFeed: true, ads: true, lokalnieOffers: true, endedOfferReco: true, recommendedProducts: true });
 
 function findElementByTagNameAndText(tagName, text) {
     const el = [...document.getElementsByTagName(tagName)]
@@ -43,6 +48,7 @@ function findElementByTagNameAndText(tagName, text) {
 }
 
 const DEFAULT_PRODUCT_SECTIONS = {
+    disableGalleryHover: false,
     othersAlsoViewed: true,
     lowestPriceProposals: true,
     singleShipmentOrder: true,
@@ -64,12 +70,17 @@ const DEFAULT_PRODUCT_SECTIONS = {
     lokalnieOffers: true,
     collapsedReviews: true,
     similarOffers: true,
-    endedOfferReco: true
+    endedOfferReco: true,
+    recommendedProducts: true
 };
+
+// Sekcje domyślnie WYŁĄCZONE (zmieniają zachowanie strony, a nie tylko ukrywają
+// element) - brak zapisanej wartości oznacza false, a nie true.
+const PRODUCT_SECTIONS_OFF_BY_DEFAULT = ["disableGalleryHover"];
 
 function normalizeProductSections(raw) {
     return Object.keys(DEFAULT_PRODUCT_SECTIONS).reduce((acc, key) => {
-        acc[key] = raw?.[key] !== false;
+        acc[key] = PRODUCT_SECTIONS_OFF_BY_DEFAULT.includes(key) ? raw?.[key] === true : raw?.[key] !== false;
         return acc;
     }, {});
 }
@@ -437,6 +448,11 @@ const TEXT_AND_PERMANENT_SECTION_KEYS = new Set([
 // reportAppliedSections po debounce w observeAndRemoveAds.
 let acvLastAppliedSections = new Set();
 
+// Czy na tej stronie usunięto już jakąkolwiek reklamę (sekcja ads). Reklamy są usuwane
+// z DOM tylko raz, więc przy kolejnych przebiegach removeAds nie ma już czego usuwać -
+// bez tej flagi pogrubienie "Reklamy" znikało po pierwszej mutacji DOM.
+let acvAdsRemovedOnPage = false;
+
 // Domyślnie rozwija zwinięty panel "Opis" (funkcja "Domyślne rozwijanie
 // opisu" / descriptionExpanded). W odróżnieniu od reszty sekcji NIC tu nie
 // jest usuwane z DOM - zamiast tego symulujemy kliknięcie w przycisk-nagłówek
@@ -757,6 +773,14 @@ function removeAds(sectionSettings) {
             acvAdsRemoved = true;
         });
     }
+    // Baner Google pod ceną (strony ogłoszeń) - ten sam checkbox. Usuwamy z DOM,
+    // żeby nie ładować reklamy (display:none samo tego nie zatrzymuje).
+    if (sections.ads) {
+        document.querySelectorAll('div[data-prototype-id="allegro.advertisement.slot.underPrice"]').forEach((el) => {
+            el.remove();
+            acvAdsRemoved = true;
+        });
+    }
     // Reklamy banerowe - ten sam checkbox co reklamy DSS wyżej.
     // Celujemy w najbliższy kontener reklamy, NIE w 3× parentElement
     // (to mogło kiedyś wyciąć zbyt duży blok layoutu).
@@ -774,7 +798,8 @@ function removeAds(sectionSettings) {
             }
         });
     }
-    if (acvAdsRemoved) {
+    if (acvAdsRemoved) acvAdsRemovedOnPage = true;
+    if (acvAdsRemovedOnPage) {
         applied.add('ads');
     }
     // Ankieta produktu - tylko gdy włączony checkbox productSurvey.
@@ -802,12 +827,22 @@ function removeAds(sectionSettings) {
     if (sections.productSurvey && document.querySelector('div[data-box-name="surveyContainer"]')) {
         applied.add('productSurvey');
     }
-    if (sections.infiniteFeed && document.querySelector('div[data-box-name="infinite-feed.wrapper"]')) {
+    // Także sam zastępnik lazy (infinite-feed.lazy.container): ukryty razem z sekcją,
+    // więc właściwy wrapper może się w ogóle nie doładować.
+    if (sections.infiniteFeed && document.querySelector('div[data-box-name="infinite-feed.wrapper"], div[data-box-name="infinite-feed.lazy.container"]')) {
         applied.add('infiniteFeed');
     }
     // Szukana oferta jest nieaktualna (tylko zakończona oferta): karuzela u góry
     // (Container carousel reco ended) i jej drugi egzemplarz na dole (Container
     // carousel_reco_ended, także wariant -placeholder). Ukrywa wyłącznie CSS.
+    // Polecane produkty (karuzela z zakładkami, box tabs_bpg_novelty_container):
+    // ukrywa wyłącznie CSS, tu tylko wykrycie elementu na stronie.
+    if (sections.disableGalleryHover && window.__acvGalleryHoverDisabled) {
+        applied.add('disableGalleryHover');
+    }
+    if (sections.recommendedProducts && document.querySelector('div[data-box-name="tabs_bpg_novelty_container"]')) {
+        applied.add('recommendedProducts');
+    }
     if (sections.endedOfferReco && document.querySelector('div[data-box-name="Container carousel reco ended"], div[data-box-name^="Container carousel_reco_ended"]')) {
         applied.add('endedOfferReco');
     }
@@ -1025,6 +1060,10 @@ const ACV_OUTDATED_PAGE_SECTION_KEYS = new Set([
     'descriptionExpanded',
     'collapsedReviews',
     'endedOfferReco',
+    // Reklamy (DSS, banerowe, baner pod ceną na ogłoszeniach) - bez przenoszenia układu.
+    'ads',
+    // Zachowanie galerii (nie ukrywanie): tu tylko znacznik do pogrubienia w popupie.
+    'disableGalleryHover',
     // Ukrywane CSS-em; tu tylko wykrycie elementu (pogrubienie w popupie).
     'allegroPayCoupons'
 ]);
@@ -1037,6 +1076,70 @@ function restoreOutdatedLook(sectionSettings) {
     removeAds(sections);
     reportAppliedSections();
     observeAndRemoveAds(sections);
+}
+
+// ---------------------------------------------------------------------------
+// "Kursor nie zmienia obrazów" (klucz disableGalleryHover): na stronie
+// produktu najechanie na miniaturę w galerii (widok normalny i otwarta galeria)
+// NIE zmienia obrazu głównego; zmienia go dopiero klik w miniaturę, a klik nie
+// otwiera już galerii (galerię nadal otwiera klik w obraz główny).
+// Ustalone z logu diagnostycznego: zmianę (po ~50 ms) uruchamia pointerover /
+// mouseover na miniaturze, a klik w miniaturę w widoku normalnym otwiera galerię
+// (w otwartej galerii klik nic nie robi).
+// Powiększanie obrazu głównego po najechaniu (zoom 1.5x i przesuwanie przy ruchu
+// myszy) wyłącza reguła CSS w product-page-instant-hide.css (klasa
+// acv-disable-gallery-zoom z tego samego checkboxa), tylko przy zamkniętej galerii.
+// Jak: listenery na window w fazie capture (przed kodem Allegro) zatrzymują
+// zdarzenia najechania na miniaturę. Uwaga: React wylicza onMouseEnter przy
+// przejściu między elementami z mouseout (relatedTarget = cel), dlatego
+// blokujemy też mouseout/pointerout, których relatedTarget leży w miniaturze.
+// Klik w miniaturę zatrzymujemy i wysyłamy do niej własne (isTrusted=false)
+// zdarzenia pointerover/mouseover bez relatedTarget - kod Allegro traktuje je
+// jak najechanie z zewnątrz i sam podmienia obraz. Własnych zdarzeń nie blokujemy.
+function acvDisableGalleryHover() {
+    if (window.__acvGalleryHoverDisabled) return;
+    window.__acvGalleryHoverDisabled = true;
+
+    const GALLERY = 'div[data-box-name="showoffer.gallery"]';
+    // Miniatura zdjęcia (img .../s128/...) albo miniatura wideo (aria-label="Wideo" z ikoną
+    // play action-common-play-button; uruchamia wideo w obszarze obrazu głównego).
+    const isThumbButton = (button) => button?.tagName === "BUTTON" && (
+        !!button.querySelector('img[src*="/s128/"]')
+        || (button.getAttribute("aria-label") === "Wideo" && !!button.querySelector('img[src*="action-common-play-button"]'))
+    );
+    const thumbOf = (node) => {
+        const button = node?.closest?.("button");
+        return button && button.closest(GALLERY) && isThumbButton(button) ? button : null;
+    };
+
+    // Najechanie na miniaturę: zdarzenia "over" (cel w miniaturze) i "enter".
+    ["pointerover", "mouseover", "pointerenter", "mouseenter"].forEach((type) => {
+        window.addEventListener(type, (event) => {
+            if (event.isTrusted && thumbOf(event.target)) event.stopImmediatePropagation();
+        }, true);
+    });
+    // Przejście kursora na miniaturę z innego elementu (React liczy z "out").
+    ["pointerout", "mouseout"].forEach((type) => {
+        window.addEventListener(type, (event) => {
+            if (event.isTrusted && thumbOf(event.relatedTarget)) event.stopImmediatePropagation();
+        }, true);
+    });
+
+    // Klik w miniaturę: bez otwierania galerii, za to wybór obrazu.
+    window.addEventListener("click", (event) => {
+        if (!event.isTrusted) return;
+        const button = thumbOf(event.target);
+        if (!button) return;
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        const init = { bubbles: true, cancelable: true, composed: true, view: window, relatedTarget: null, clientX: event.clientX, clientY: event.clientY };
+        try {
+            button.dispatchEvent(new PointerEvent("pointerover", { ...init, pointerType: "mouse", isPrimary: true }));
+        } catch (_) {
+            // brak PointerEvent - wystarczy zdarzenie myszy
+        }
+        button.dispatchEvent(new MouseEvent("mouseover", init));
+    }, true);
 }
 
 function isOutdatedItemPage() {
@@ -1063,7 +1166,7 @@ function _acvWaitForBodyReady() {
 }
 
 (async () => {
-    if (location.hostname !== "allegro.pl" || (!location.pathname.startsWith("/produkt/") && !location.pathname.startsWith("/oferta/"))) {
+    if (location.hostname !== "allegro.pl" || (!location.pathname.startsWith("/produkt/") && !location.pathname.startsWith("/oferta/") && !location.pathname.startsWith("/ogloszenie/"))) {
         return;
     }
 
@@ -1085,7 +1188,13 @@ function _acvWaitForBodyReady() {
 
     await _acvWaitForBodyReady();
 
-    if (!isOutdatedItemPage()) {
+    if (normalizeProductSections(config.sections).disableGalleryHover) {
+        acvDisableGalleryHover();
+    }
+
+    // Strony ogłoszeń (/ogloszenie/*) mają inny układ niż /produkt/ - tak jak zakończona
+    // oferta dostają tylko ograniczony tryb (bez przenoszenia parametrów i opisu).
+    if (!isOutdatedItemPage() && !location.pathname.startsWith("/ogloszenie/")) {
         restoreOldLook(config.sections);
     } else {
         restoreOutdatedLook(config.sections);

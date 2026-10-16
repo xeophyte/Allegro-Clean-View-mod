@@ -35,9 +35,11 @@ const DEFAULT_SETTINGS = {
     },
     productOffersSections: {
         sponsoredBrand: true,
+        officialStore: true,
         similarOffers: true
     },
     productSections: {
+        disableGalleryHover: false,
         othersAlsoViewed: true,
         lowestPriceProposals: true,
         singleShipmentOrder: true,
@@ -59,7 +61,8 @@ const DEFAULT_SETTINGS = {
         lokalnieOffers: true,
         collapsedReviews: true,
         similarOffers: true,
-        endedOfferReco: true
+        endedOfferReco: true,
+        recommendedProducts: true
     },
     transactionSections: {
         ads: true,
@@ -81,6 +84,9 @@ const DEFAULT_SETTINGS = {
         othersAlsoBuy: true
     },
     miscSections: {
+        searchSuggestions: true,
+        sponsoredOffers: true,
+        loginAd: true,
         allegroServices: true,
         reviewsFilter: true,
         comparisonRecommended: true,
@@ -89,6 +95,11 @@ const DEFAULT_SETTINGS = {
         footerColumns: true,
         footerAd: true,
         mainTopAd: true
+    },
+    // Domyślne sortowanie list (kategorie, wyszukiwanie, oferty produktu) - patrz misc-content.js.
+    miscSort: {
+        enabled: false,
+        value: "p"
     },
     myPurchasesSections: {
         shortcutTiles: true,
@@ -106,6 +117,56 @@ const DEFAULT_GLOBAL_ENABLED = true;
 // mówi tylko co POWINNO być usuwane). Czyszczona przy zamknięciu karty.
 const appliedSectionsByTab = new Map();
 
+// Zastosowane sekcje (do pogrubienia w popupie) przeżywają uśpienie service workera
+// MV3 (po ok. 30 s bezczynności proces tła jest zatrzymywany, a zmienne w pamięci
+// znikają - wtedy pogrubienia zanikały). Kopia w storage.session (czyszczona dopiero
+// po zamknięciu przeglądarki); Map zostaje jako cache. Wszystkie zapisy idą przez
+// mutateAppliedSections, żeby najpierw wczytać zapisany stan i go nie nadpisać.
+const APPLIED_SESSION_KEY = "acvAppliedSectionsByTab";
+const appliedSessionStorage = (typeof browser !== "undefined" && browser?.storage?.session)
+    ? browser.storage.session
+    : (typeof chrome !== "undefined" ? chrome.storage?.session : null);
+let appliedSectionsLoading = null;
+
+function loadAppliedSections() {
+    if (!appliedSectionsLoading) {
+        appliedSectionsLoading = (async () => {
+            try {
+                const result = await appliedSessionStorage?.get(APPLIED_SESSION_KEY);
+                Object.entries(result?.[APPLIED_SESSION_KEY] || {}).forEach(([key, value]) => {
+                    const tabId = Number(key);
+                    if (!appliedSectionsByTab.has(tabId)) appliedSectionsByTab.set(tabId, value);
+                });
+            } catch (_) {
+                // brak storage.session - zostaje sam cache w pamięci
+            }
+        })();
+    }
+    return appliedSectionsLoading;
+}
+
+async function mutateAppliedSections(mutate) {
+    await loadAppliedSections();
+    mutate();
+    try {
+        await appliedSessionStorage?.set({ [APPLIED_SESSION_KEY]: Object.fromEntries(appliedSectionsByTab) });
+    } catch (_) {
+        // zapis się nie udał - zostaje cache w pamięci
+    }
+}
+
+// Powiadamia otwarty popup, że lista zastosowanych sekcji tej karty się
+// zmieniła (pogrubienia "na żywo"). Gdy popup jest zamknięty, nie ma odbiorcy
+// i sendMessage zgłasza błąd - ignorujemy go.
+function notifyAppliedSectionsChanged(tabId) {
+    try {
+        const api = (typeof browser !== "undefined" && browser?.runtime) ? browser.runtime : chrome.runtime;
+        const result = api.sendMessage({ type: "APPLIED_SECTIONS_CHANGED", tabId });
+        if (result && typeof result.catch === "function") result.catch(() => {});
+    } catch (_) {
+    }
+}
+
 function getPageKeyFromPath(pathname) {
     if (pathname.startsWith("/kategoria/") || pathname === "/listing" || pathname.startsWith("/listing/")) {
         return "listing";
@@ -113,7 +174,7 @@ function getPageKeyFromPath(pathname) {
     if (pathname.startsWith("/oferty-produktu/")) {
         return "productOffers";
     }
-    if (pathname.startsWith("/produkt/") || pathname.startsWith("/oferta/")) {
+    if (pathname.startsWith("/produkt/") || pathname.startsWith("/oferta/") || pathname.startsWith("/ogloszenie/")) {
         return "product";
     }
     if (pathname.startsWith("/transakcja/dziekujemy")) {
@@ -231,21 +292,28 @@ function normalizeSettings(raw) {
         transactionSections,
         favoritesSections,
         myPurchasesSections,
-        miscSections
+        miscSections,
+        miscSort: normalizeMiscSort(raw?.miscSort)
     };
 }
 
 function mapProductSections(value) {
     return Object.keys(DEFAULT_SETTINGS.productSections).reduce((acc, key) => {
-        acc[key] = Boolean(value);
+        // Sekcje domyślnie wyłączone (zmieniające zachowanie) zawsze zostają wyłączone
+        // przy przełączaniu całej sekcji "Strona produktu" - włącza się je tylko ręcznie.
+        acc[key] = PRODUCT_SECTIONS_OFF_BY_DEFAULT.includes(key) ? false : Boolean(value);
         return acc;
     }, {});
 }
 
+// Sekcje domyślnie WYŁĄCZONE (zmieniają zachowanie strony, a nie tylko ukrywają
+// element) - brak zapisanej wartości oznacza false, a nie true.
+const PRODUCT_SECTIONS_OFF_BY_DEFAULT = ["disableGalleryHover"];
+
 function normalizeProductSections(raw) {
     const defaults = DEFAULT_SETTINGS.productSections;
     return Object.keys(defaults).reduce((acc, key) => {
-        acc[key] = raw?.[key] !== false;
+        acc[key] = PRODUCT_SECTIONS_OFF_BY_DEFAULT.includes(key) ? raw?.[key] === true : raw?.[key] !== false;
         return acc;
     }, {});
 }
@@ -340,6 +408,17 @@ function normalizeMiscSections(raw) {
     }, {});
 }
 
+// Wartości ?order= wspólne dla kategorii, wyszukiwania i ofert produktu
+// (bez "m" = trafność, to domyślne sortowanie Allegro).
+const MISC_SORT_VALUES = ["p", "pd", "d", "dd", "qd", "t", "n"];
+
+function normalizeMiscSort(raw) {
+    return {
+        enabled: raw?.enabled === true,
+        value: MISC_SORT_VALUES.includes(raw?.value) ? raw.value : "p"
+    };
+}
+
 function mapMyPurchasesSections(value) {
     return Object.keys(DEFAULT_SETTINGS.myPurchasesSections).reduce((acc, key) => {
         acc[key] = Boolean(value);
@@ -420,13 +499,22 @@ function setGlobalEnabled(enabled) {
     });
 }
 
-async function isEnabledForUrl(url) {
-    const pageKey = getPageKeyFromUrl(url);
-    if (!pageKey) return false;
+async function isEnabledForUrl(url, tabId) {
+    if (!isAllegroUrl(url)) return false;
     const globalEnabled = await getGlobalEnabled();
     if (!globalEnabled) return false;
     const settings = await getSettings();
-    return settings[pageKey] !== false;
+    const pageKey = getPageKeyFromUrl(url);
+    if (pageKey) return settings[pageKey] !== false;
+
+    // Strona bez własnej sekcji (np. strona główna, /uzytkownik/*, ale też strony,
+    // na których nic nie ma do ukrycia): działa tu tylko sekcja "Różne", więc ikona
+    // jest ON wyłącznie wtedy, gdy "Różne" faktycznie coś na tej stronie zastosowała
+    // (raport źródła "misc" z misc-content.js, patrz REPORT_APPLIED_SECTIONS).
+    if (settings.misc === false || typeof tabId !== "number") return false;
+    await loadAppliedSections();
+    const stored = appliedSectionsByTab.get(tabId);
+    return Array.isArray(stored?.misc) && stored.misc.length > 0;
 }
 
 function setActionIcon(enabled, tabId) {
@@ -475,7 +563,7 @@ async function refreshIconForTab(tabId) {
         }));
     }
 
-    const enabled = await isEnabledForUrl(tab?.url);
+    const enabled = await isEnabledForUrl(tab?.url, tabId);
     await setActionIcon(enabled, tabId);
     await setActionTitle(enabled, tabId);
 }
@@ -634,6 +722,14 @@ async function applyFavoritesSectionSetting(sectionKey, enabled) {
     if (activeTab?.id) {
         await refreshIconForTab(activeTab.id);
     }
+}
+
+// Domyślne sortowanie działa dopiero przy kolejnym wejściu na listę, więc
+// nie przeładowujemy aktywnej karty.
+async function applyMiscSortSetting(enabled, value) {
+    const settings = await getSettings();
+    settings.miscSort = normalizeMiscSort({ enabled, value });
+    await setSettings(settings);
 }
 
 // Sekcja "Różne" nie ma własnej strony (działa na całym allegro.pl), więc
@@ -802,6 +898,13 @@ runtimeApi.onMessage?.addListener((message, _sender, sendResponse) => {
         return true;
     }
 
+    if (message.type === "SET_MISC_SORT") {
+        applyMiscSortSetting(message.enabled === true, message.value)
+            .then(() => sendResponse({ ok: true }))
+            .catch((error) => sendResponse({ ok: false, error: String(error) }));
+        return true;
+    }
+
     if (message.type === "SET_MISC_SECTION_ENABLED") {
         const sectionKey = message.section;
         if (!Object.prototype.hasOwnProperty.call(DEFAULT_SETTINGS.miscSections, sectionKey)) {
@@ -833,19 +936,27 @@ runtimeApi.onMessage?.addListener((message, _sender, sendResponse) => {
             // misc-content.js) są przechowywane osobno wg źródła i scalane
             // przy odczycie. Brak "source" = skrypt strony ("main").
             const source = typeof message.source === "string" ? message.source : "main";
-            const prev = appliedSectionsByTab.get(tabId);
-            const bySource = (prev && !Array.isArray(prev)) ? prev : {};
-            appliedSectionsByTab.set(tabId, { ...bySource, [source]: message.sections });
+            mutateAppliedSections(() => {
+                const prev = appliedSectionsByTab.get(tabId);
+                const bySource = (prev && !Array.isArray(prev)) ? prev : {};
+                appliedSectionsByTab.set(tabId, { ...bySource, [source]: message.sections });
+            }).then(() => {
+                notifyAppliedSectionsChanged(tabId);
+                // Raport "Różne" może przełączyć ikonę na stronie bez własnej sekcji.
+                if (source === "misc") refreshIconForTab(tabId);
+            });
         }
         return;
     }
 
     if (message.type === "GET_APPLIED_SECTIONS") {
         const tabId = message.tabId;
-        const stored = appliedSectionsByTab.get(tabId);
-        const merged = (stored && !Array.isArray(stored)) ? [...new Set(Object.values(stored).flat())] : (stored || []);
-        sendResponse({ sections: merged });
-        return;
+        loadAppliedSections().then(() => {
+            const stored = appliedSectionsByTab.get(tabId);
+            const merged = (stored && !Array.isArray(stored)) ? [...new Set(Object.values(stored).flat())] : (stored || []);
+            sendResponse({ sections: merged });
+        });
+        return true;
     }
 
     if (message.type === "GET_ENABLED") {
@@ -872,7 +983,8 @@ tabsApi.onUpdated?.addListener((tabId, changeInfo) => {
         // Nowe ładowanie strony (w tym SPA-nawigacja Allegro) - stare dane
         // o zastosowanych sekcjach są nieaktualne, content skrypt zaraz
         // zgłosi nowe.
-        appliedSectionsByTab.delete(tabId);
+        mutateAppliedSections(() => appliedSectionsByTab.delete(tabId))
+            .then(() => notifyAppliedSectionsChanged(tabId));
     }
     if (changeInfo.status === "loading" || changeInfo.status === "complete") {
         refreshIconForTab(tabId);
@@ -880,5 +992,5 @@ tabsApi.onUpdated?.addListener((tabId, changeInfo) => {
 });
 
 tabsApi.onRemoved?.addListener((tabId) => {
-    appliedSectionsByTab.delete(tabId);
+    mutateAppliedSections(() => appliedSectionsByTab.delete(tabId));
 });

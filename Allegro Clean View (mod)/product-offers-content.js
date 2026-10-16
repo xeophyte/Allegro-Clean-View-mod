@@ -1,11 +1,13 @@
 const DEFAULT_PRODUCT_OFFERS_SECTIONS = {
     sponsoredBrand: true,
+    officialStore: true,
     similarOffers: true
 };
 
 // Klasy na <html> sterujące wczesnym CSS (product-offers-instant-hide.css).
 const ACV_PRODUCT_OFFERS_CSS_CLASSES = {
     sponsoredBrand: "acv-hide-product-offers-sponsored-brand",
+    officialStore: "acv-hide-product-offers-official-store",
     similarOffers: "acv-hide-product-offers-similar-offers"
 };
 
@@ -81,6 +83,13 @@ function removeSponsoredBrand() {
     return els.length > 0;
 }
 
+// Odkryj oficjalny sklep: kafelek <li> w liście ofert z linkiem "ZOBACZ SKLEP MARKI".
+// Ukrywa go wyłącznie CSS (li jest elementem listy zarządzanej przez React - nie
+// usuwamy go z DOM); tu tylko wykrycie, czy jest na stronie (pogrubienie w popupie).
+function detectOfficialStore() {
+    return !!document.querySelector('li a[title="ZOBACZ SKLEP MARKI"]');
+}
+
 // Podobne oferty: usuwa kontener "similar offers" (tytuł + karuzela) i zwraca
 // true, jeśli coś usunął.
 function removeSimilarOffers() {
@@ -92,6 +101,9 @@ function removeSimilarOffers() {
 function applyProductOffersSections(sections) {
     if (sections.sponsoredBrand) {
         if (removeSponsoredBrand()) acvProductOffersAppliedSections.add('sponsoredBrand');
+    }
+    if (sections.officialStore) {
+        if (detectOfficialStore()) acvProductOffersAppliedSections.add('officialStore');
     }
     if (sections.similarOffers) {
         if (removeSimilarOffers()) acvProductOffersAppliedSections.add('similarOffers');
@@ -129,7 +141,7 @@ function whenPageLoaded() {
 
     const config = await getProductOffersConfig();
     if (!config.enabled) {
-        _acvApplyProductOffersClasses({ sponsoredBrand: false, similarOffers: false });
+        _acvApplyProductOffersClasses({ sponsoredBrand: false, officialStore: false, similarOffers: false });
         return;
     }
     _acvApplyProductOffersClasses(config.sections);

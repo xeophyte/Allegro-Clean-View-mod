@@ -45,6 +45,40 @@ html.acv-hide-misc-comparison-recommended th:has(button[data-analytics-interacti
     display: none !important;
 }
 
+/* "Proponowane w wyszukiwarce" (klucz searchSuggestions): poziomy pasek
+   kafelków (zdjęcie + fraza, np. "żelazko parowe") na górze rozwiniętej listy
+   podpowiedzi po wpisaniu frazy w wyszukiwarkę. Lista to
+   div#suggestions-listbox[data-role="suggester"] (doklejana do DOM dopiero po
+   wpisaniu frazy), a karuzela to jej bezpośrednie dziecko
+   [data-role="carousel-component"]. Tekstowe podpowiedzi (a[data-role="suggestion"])
+   i ostatnie wyszukiwania zostają. */
+html.acv-hide-misc-search-suggestions div[data-role="suggester"] > div[data-role="carousel-component"] {
+    display: none !important;
+}
+
+/* "Oferty sponsorowane" (klucz sponsoredOffers): powtarzające się w listach
+   (kategoria, wyszukiwanie, oferty produktu) oferty z etykietą "Sponsorowane",
+   zwykle 2 na górze i 2 na dole listy. Każda to <li> w jednym <ul> z ofertami,
+   więc ukrycie nie zostawia pustych kontenerów. Rozpoznawane po DWÓCH znacznikach
+   naraz: link /events/clicks (przekierowanie reklamowe) i przycisk
+   aria-label="Sponsorowane ...". Oferty promowane ("Produkty promowane") mają
+   zwykłe linki /produkt/... i etykietę "Promowane", więc nie są ruszane.
+   Brak wspólnego data-box-name dla 3 typów stron, stąd selektor po <li>. */
+html.acv-hide-misc-sponsored-offers li:has(> article a[href*="/events/clicks"]):has(button[aria-label^="Sponsorowane"]) {
+    display: none !important;
+}
+
+/* "Reklama przy logowaniu" (klucz loginAd): baner Google 500x380 na stronie
+   allegro.pl/logowanie. Slot to div[data-prototype-id="allegro.advertisement.slot.banner"]
+   z data-analytics-groups zawierającym "loginAd" (data-box-name "banner - cmuid").
+   Ukrywamy sam slot, a osobną regułą także otaczający <section> (ma własne paddingi),
+   ALE tylko gdy slot jest w nim jedyną zawartością - gdyby w tej ramce pojawiły się
+   inne elementy, zostają widoczne. */
+html.acv-hide-misc-login-ad div[data-prototype-id="allegro.advertisement.slot.banner"][data-analytics-groups*="loginAd"],
+html.acv-hide-misc-login-ad section:has(> div:only-child > div[data-prototype-id="allegro.advertisement.slot.banner"][data-analytics-groups*="loginAd"]:only-child) {
+    display: none !important;
+}
+
 /* "Asystent Allegro" (klucz allegroAssistant): wysuwany przycisk "Zapytaj
    Asystenta Allegro" przy krawędzi okna (otwiera panel czatu, który ładuje się
    dopiero po kliknięciu - więc ukrywamy tylko przycisk). Kontener
@@ -60,7 +94,11 @@ html.acv-hide-misc-allegro-assistant div[data-box-name="allegro.chatbotAssistant
    data-box-name="metrum-footer-partial-expander" - ta sama budowa na stronie
    głównej, kategorii, użytkownika, ofertach produktu i stronie produktu (w
    kodzie strony 1 raz). Właściwa stopka (data-box-name="f-links") zostaje. */
-html.acv-hide-misc-footer-links div[data-box-name="metrum-footer-partial-expander"] {
+html.acv-hide-misc-footer-links div[data-box-name="metrum-footer-partial-expander"],
+/* Drugi poziom, tylko w niektórych kategoriach (np. nieruchomości): dodatkowa
+   lista linków SEO ("Domy na sprzedaż Warszawa", ...) nad stopką. Unikalny
+   kontener zewnętrzny (1 raz na stronie), poza metrum-footer-partial-expander. */
+html.acv-hide-misc-footer-links div[data-box-name="seo-custom-navigation-links"] {
     display: none !important;
 }
 
@@ -75,6 +113,18 @@ html.acv-hide-misc-footer-links div[data-box-name="metrum-footer-partial-expande
    (okno allegro.modal otwierane z tej kolumny), stąd "(ustawienia)" w nazwie. */
 html.acv-hide-misc-footer-columns div[data-box-name="f-links"],
 html.acv-hide-misc-footer-columns div[data-box-name="f-social"] {
+    display: none !important;
+}
+
+/* Zastępnik leniwego ładowania górnej stopki: div allegro.spinner.metrum-footer
+   (data-placeholder-for wskazuje metrum-footer-seo-lazy, czyli "Linki nad stopką"
+   + f-links + f-social). Przed doładowaniem pokazuje spinner (czasem wisi na stałe,
+   gdy treść się nie dociągnie). Ukrywamy go TYLKO gdy włączone są oba checkboxy
+   ("Linki nad stopką" i "Stopka (ustawienia)"), bo wtedy cała ta treść i tak jest
+   niewidoczna; ukryty zastępnik prawdopodobnie nie wejdzie w pole widzenia, więc treść
+   w ogóle się nie doładuje. Przy jednym włączonym spinner zostaje, bo drugi element
+   ma się jeszcze załadować. */
+html.acv-hide-misc-footer-links.acv-hide-misc-footer-columns div[data-box-name="allegro.spinner.metrum-footer"] {
     display: none !important;
 }
 

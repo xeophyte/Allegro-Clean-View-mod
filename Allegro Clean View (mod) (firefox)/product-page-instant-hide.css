@@ -45,6 +45,11 @@ html.acv-hide-ads div[data-prototype-id="allegro.ads.dss.video"],
    alt="Reklama banerowa" (lub jej nie ma w DOM), więc JS po img jej nie
    łapał i zostawał sam przycisk "Sponsorowane" - celujemy w kontener. */
 html.acv-hide-ads div[data-prototype-id="allegro.ads.dss.banner"],
+/* Mały baner Google pod ceną (strony ogłoszeń /ogloszenie/*): slot
+   data-box-name="underPrice", data-prototype-id="allegro.advertisement.slot.underPrice"
+   (iframe safeframe, link zaczyna się od adclick.g.doubleclick.net/pcs/). Stabilny
+   jest prototype-id; box-name "underPrice" jest zbyt ogólny. */
+html.acv-hide-ads div[data-prototype-id="allegro.advertisement.slot.underPrice"],
 html.acv-hide-ads div[data-box-name="template-with-offers"] {
     display: none !important;
 }
@@ -163,7 +168,13 @@ html.acv-hide-product-survey [data-analytics-click-label="showProductSurvey"] {
    ten produkt"/"O marce"/"Sugestia AI"/"Co sądzisz o tej stronie?"),
    więc jego usunięcie kasuje całą sekcję od razu, bez osieroconego
    wrappera. */
-html.acv-hide-infinite-feed div[data-box-name="infinite-feed.wrapper"] {
+/* Zastępnik leniwego ładowania tej sekcji (infinite-feed.lazy.container, ze
+   spinnerem infinite-feed.lazy.spinner w środku): przed doładowaniem treści
+   pokazuje się jako pusta karta ze spinnerem (czasem wisi na stałe, gdy treść się
+   nie dociągnie). Ukrywamy go razem z sekcją; ukryty (display: none) nie wchodzi
+   w pole widzenia, więc treść prawdopodobnie w ogóle się nie doładuje. */
+html.acv-hide-infinite-feed div[data-box-name="infinite-feed.wrapper"],
+html.acv-hide-infinite-feed div[data-box-name="infinite-feed.lazy.container"] {
     display: none !important;
 }
 
@@ -177,6 +188,29 @@ html.acv-hide-infinite-feed div[data-box-name="infinite-feed.wrapper"] {
    Leży w "forbidden categories" wewnątrz "Cobalt Container Special bottom",
    ale tych rodziców NIE ukrywamy (obejmują też inne elementy). */
 html.acv-hide-lokalnie-offers div[data-box-name="Lokalnie offers container"] {
+    display: none !important;
+}
+
+/* Sterowane checkboxem "Kursor nie zmienia obrazów" (disableGalleryHover,
+   domyślnie wyłączone): wyłączenie powiększania obrazu głównego po najechaniu
+   kursorem w widoku normalnym. Zoom (scale3d 1.5 + translate3d przy każdym ruchu
+   myszy, reset po opuszczeniu) to inline style na div w boksie showoffer.gallery
+   (jedyny element z scale3d). Wymuszamy tu stan domyślny (bez zoomu) z !important,
+   więc JS Allegro może zmieniać style, a obraz się nie rusza; kursor (lupka)
+   i klik otwierający galerię nie są ruszane. Reguła działa TYLKO przy zamkniętej
+   galerii (przycisk "Zamknij" istnieje tylko w otwartej), bo w galerii klik
+   w obraz główny ma powiększać i przesuwać obraz. */
+html.acv-disable-gallery-zoom div[data-box-name="showoffer.gallery"]:not(:has(button[aria-label="Zamknij"])) div[style*="scale3d"] {
+    transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) !important;
+}
+
+/* Sterowane checkboxem "Polecane produkty" (recommendedProducts).
+   Karuzela z zakładkami pod tytułem h2 "Polecane produkty"
+   (data-role="replaceable-title" - tytuł bywa podmieniany w eksperymentach,
+   dlatego nie szukamy go po tekście). Najbardziej zewnętrzny kontener
+   div[data-box-name="tabs_bpg_novelty_container"] (1 raz na stronie) obejmuje
+   cały blok z marginesami, więc po ukryciu nie zostaje odstęp. */
+html.acv-hide-recommended-products div[data-box-name="tabs_bpg_novelty_container"] {
     display: none !important;
 }
 

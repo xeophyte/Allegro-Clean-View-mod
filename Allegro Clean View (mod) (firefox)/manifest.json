@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Allegro Clean View (mod)",
-  "version": "2.0",
-  "description": "Ukrywa zbędne elementy na stronach Allegro",
+  "version": "2.1",
+  "description": "Ukrywa zbędne elementy na stronach Allegro i dodaje przydatne funkcje",
   "permissions": [
     "storage",
     "tabs"
@@ -89,7 +89,8 @@
       ],
       "matches": [
         "https://allegro.pl/produkt/*",
-        "https://allegro.pl/oferta/*"
+        "https://allegro.pl/oferta/*",
+        "https://allegro.pl/ogloszenie/*"
       ],
       "run_at": "document_start"
     },
