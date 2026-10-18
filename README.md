@@ -32,4 +32,4 @@ MIT. Zobacz plik [LICENSE](LICENSE).
 - Nie usuwaj, nie przenoś ani nie zmieniaj nazwy wypakowanego folderu, ponieważ przeglądarka ładuje rozszerzenie bezpośrednio z tej lokalizacji.
 - Aby zaktualizować rozszerzenie, pobierz nowy plik ZIP, podmień pliki w tym samym folderze i kliknij przycisk przeładowania na karcie rozszerzenia na stronie rozszerzeń.
 
-### [Wszystkie wersje rozszerzenia](https://github.com/xeophyte/Allegro-Clean-View-mod/releases)
+### [Wszystkie wersje](https://github.com/xeophyte/Allegro-Clean-View-mod/releases)
